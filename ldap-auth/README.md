@@ -16,7 +16,7 @@ configuration settings.
 ## Installation
 
 Simply upload the ZIP file containing the plug-in via the Mirth Connect
-administrator, or unzip the ZIP file into the `extensions`/ directory on
+administrator, or unzip the ZIP file into the `extensions/` directory on
 your Mirth server.
 
 ## Building
