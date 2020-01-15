@@ -3,7 +3,7 @@
   <author>Christopher Schultz</author>
   <pluginVersion>0.1</pluginVersion>
   <mirthVersion>3.8.0</mirthVersion>
-  <url></url>
+  <url>https://github.com/ChristopherSchultz/mirth-plugins/tree/master/ldap-auth</url>
   <description>Authenticates against an LDAP server.</description>
 <!--
   <clientClasses>
