@@ -3,7 +3,7 @@
 PATH=$PATH:~/packages/apache-maven-3.6.2/bin
 VERSION=0.1
 PACKAGE_NAME=cschultz-ldap-auth
-BUILD_CLIENT=yes
+BUILD_CLIENT=no
 BUILD_SERVER=yes
 
 PACKAGE_JAR=${PACKAGE_NAME}-${VERSION}.jar
