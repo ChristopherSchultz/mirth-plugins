@@ -71,7 +71,7 @@ public class LDAPAuthenticatorPlugin
         // database and load them out again
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("ldap.properties")) {
             if(null == in) {
-                logger.debug("No local ldap.properties found; using databsae configuration");
+                logger.debug("No local ldap.properties found; using database configuration");
             } else {
                 localProperties.load(in);
             }
