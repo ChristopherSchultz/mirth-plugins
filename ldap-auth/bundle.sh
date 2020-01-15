@@ -23,6 +23,8 @@ fi
 
 jarsigner -keystore keystore.p12 -storetype PKCS12 -storepass changeit "target/${PACKAGE_JAR}" mirth-client-plugins
 
+# Use a separate directory for ZIP assembly
+rm -rf "${PACKAGE_NAME}"
 mkdir -p "${PACKAGE_NAME}"
 if [ "yes" == "${BUILD_SERVER}" ] ; then
   cp -a "target/${PACKAGE_JAR}" "${PACKAGE_NAME}/${SERVER_JAR}"
@@ -33,4 +35,6 @@ fi
 cp -a src/main/resources/plugin.xml "${PACKAGE_NAME}/plugin.xml"
 
 zip -r9 "target/${PACKAGE_ZIP}" "${PACKAGE_NAME}"
+
+rm -rf "${PACKAGE_NAME}"
 
