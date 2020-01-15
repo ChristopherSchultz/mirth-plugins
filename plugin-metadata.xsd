@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.mirthcorp.com/mirthconnect/plugins" targetNamespace="http://www.mirthcorp.com/mirthconnect/plugins" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:documentation>
+This is an attempt at building an SML schema for Mirth Connect plugin.xml
+files. It is not canonical. It may be incomplete. It may be wildly incorrect.
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="pluginMetaData" type="pluginMetaDataType" />
+
+  <xs:complexType name="pluginMetaDataType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string" /><!-- The name of the plug-in -->
+      <xs:element name="author" type="xs:string" /><!-- The author of the plug-in -->
+      <xs:element name="pluginVersion" type="xs:string" /><!-- The version of the plug-in -->
+      <xs:element name="mirthVersion" type="xs:string" /><!-- The Mirth version for which the plug-in is valid -->
+      <xs:element name="url" type="xs:anyURI" /><!-- The URL for the plug-in -->
+      <xs:element name="description" type="xs:string" /><!-- A description of the plug-in -->
+      <xs:element name="clientClasses" type="classesType" minOccurs="0" /><!-- List of (main?) classes that must be loaded into the MC Admin client -->
+      <xs:element name="serverClasses" type="classesType" minOccurs="0" /><!-- List of (main?) classes that must be loaded into the MC Server -->
+      <xs:element name="apiProviders" type="apiProvidersType" minOccurs="0" /><!-- ?? -->
+      <xs:element name="library" type="libraryType" maxOccurs="unbounded" /><!-- Library JAR files which must be included in the client/server classpath -->
+    </xs:sequence>
+    <xs:attribute name="path" use="required" /><!-- The path on the client and server where the plug-in should live -->
+  </xs:complexType>  
+
+  <xs:complexType name="classesType">
+    <xs:sequence>
+      <xs:element name="string" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>  
+
+  <xs:complexType name="libraryType">
+    <xs:attribute name="type" type="libraryTypeType" /><!-- CLIENT, SERVER, or SHARED -->
+    <xs:attribute name="path" type="xs:string" /><!-- Path to library JAR file relative to the plug-in path -->
+  </xs:complexType>
+
+  <xs:complexType name="apiProvidersType">
+    <xs:attribute name="type" type="apiProvidersTypeType" use="required" />
+    <xs:attribute name="name" />
+    <xs:attribute name="minVersion" />
+    <xs:attribute name="maxVersion" />
+  </xs:complexType>
+
+  <xs:simpleType name="libraryTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="CLIENT" />
+      <xs:enumeration value="SERVER" />
+      <xs:enumeration value="SHARED" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="apiProvidersTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SERVLET_INTERFACE_PACKAGE" />
+      <xs:enumeration value="SERVLET_INTERFACE" />
+      <xs:enumeration value="CORE_PACKAGE" />
+      <xs:enumeration value="SERVER_PACKAGE" />
+      <xs:enumeration value="CORE_CLASS" />
+      <xs:enumeration value="SERVER_CLASS" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
