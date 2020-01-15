@@ -1,0 +1,20 @@
+<pluginMetaData path="cschultz-ldap-auth">
+  <name>LDAP Authenticator</name>
+  <author>Christopher Schultz</author>
+  <pluginVersion>0.1</pluginVersion>
+  <mirthVersion>3.8.0</mirthVersion>
+  <url></url>
+  <description>Authenticates against an LDAP server.</description>
+<!--
+  <clientClasses>
+    <string>net.christopherschultz.mirth.plugins.auth.ldap.LDAPAuthenticatorConfigurationClientPlugin</string>
+  </clientClasses>
+ -->
+   <serverClasses>
+    <string>net.christopherschultz.mirth.plugins.auth.ldap.LDAPAuthenticatorPlugin</string>
+  </serverClasses>
+<!--
+  <library type="CLIENT" path="cschultz-ldap-auth-client.jar" />
+-->
+  <library type="SERVER" path="cschultz-ldap-auth-server.jar" />
+</pluginMetaData>
