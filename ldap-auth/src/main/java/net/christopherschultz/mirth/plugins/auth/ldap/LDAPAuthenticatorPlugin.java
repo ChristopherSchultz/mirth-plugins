@@ -69,7 +69,7 @@ public class LDAPAuthenticatorPlugin
         // Load the configuration from ldap.properties and return it.
         // This will cause Mirth Connect to load the properties into the server
         // database and load them out again
-        try (InputStream in = getClass().getResourceAsStream("ldap.properties")) {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("ldap.properties")) {
             if(null == in) {
                 logger.debug("No local ldap.properties found; using databsae configuration");
             } else {
