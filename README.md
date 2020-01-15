@@ -17,7 +17,7 @@ not do my job without their stewardship of Mirth Connect (now Nextgen Connect).
 
 Members of the Mirth community (e.g. the Slack channel):
 
-  Jon Bartels @jonbartels
+  [Jon Bartels](https://github.com/jonbartels) @jonb in Mirth's slack channel
 
 ## License
 
