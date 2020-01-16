@@ -83,15 +83,21 @@ public class MFAAuthenticatorPlugin
      */
     @Override
     public Properties getDefaultProperties() {
-        Properties props = new Properties();
-
-        if(logger.isDebugEnabled()) {
-            logger.debug("Generating new MFA message-signing key");
+        if(logger.isTraceEnabled()) {
+            logger.trace("getDefaultProperties");
         }
+
+        Properties props = new Properties();
 
         byte[] signingKey = generateNonce(256);
 
-        props.setProperty(SIGNING_KEY, Base64.getUrlEncoder().encodeToString(signingKey));
+        String signingKeyString = Base64.getUrlEncoder().encodeToString(signingKey);
+
+        if(logger.isTraceEnabled()) {
+            logger.trace("Generated new MFA message-signing key: " + signingKeyString);
+        }
+
+        props.setProperty(SIGNING_KEY, signingKeyString);
 
         return props;
     }
