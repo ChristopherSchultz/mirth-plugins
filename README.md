@@ -5,6 +5,12 @@ Plug-ins for Mirth Connect
 
 Provides authentication through an LDAP service.
 
+## MFA (Multi-factor authentication) Authenticator
+
+Provides TOTP MFA for Mirth.
+
+Note that the LDAP and MFA plug-ins can be used together if desired.
+
 ## Contributions
 
 I welcome contributions to these plug-ins. Please fork my repository and issue
