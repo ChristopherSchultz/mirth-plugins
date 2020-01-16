@@ -33,6 +33,7 @@ if [ "yes" == "${BUILD_CLIENT}" ] ; then
   cp -a "target/${PACKAGE_JAR}" "${PACKAGE_NAME}/${CLIENT_JAR}"
 fi
 cp -a src/main/resources/plugin.xml "${PACKAGE_NAME}/plugin.xml"
+cp -a README.md "${PACKAGE_NAME}"
 
 zip -r9 "target/${PACKAGE_ZIP}" "${PACKAGE_NAME}"
 
