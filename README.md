@@ -24,8 +24,9 @@ not do my job without their stewardship of Mirth Connect (now Nextgen Connect).
 Some Members of the Mirth community have been very helpful to my efforts. They
 are, in alphabetical order by surname:
 
-  [Jon Bartels](https://github.com/jonbartels) @jonb in Mirth's slack channel
-  [Tony Germano](https://github.com/tonygermano) @agermano in Mirth's slack channel
+ + [Jon Bartels](https://github.com/jonbartels) @jonb in Mirth's slack channel
+  
+ + [Tony Germano](https://github.com/tonygermano) @agermano in Mirth's slack channel
 
 ## License
 
