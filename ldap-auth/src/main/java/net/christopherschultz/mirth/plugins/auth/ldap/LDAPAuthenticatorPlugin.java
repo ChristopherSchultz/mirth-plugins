@@ -2,6 +2,9 @@ package net.christopherschultz.mirth.plugins.auth.ldap;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.naming.AuthenticationException;
@@ -12,8 +15,6 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
-import javax.swing.JOptionPane;
-
 import org.apache.log4j.Logger;
 
 import com.mirth.connect.client.core.ControllerException;
@@ -48,6 +49,8 @@ public class LDAPAuthenticatorPlugin
     private int _retries;
     private long _retryInterval;
     private boolean _fallbackToLocalAuthentication = false;
+    private Map<String,String> _usernameMap;
+    private String _usernameTemplate;
 
     public String getPluginPointName() {
         return "LDAP-Authenticator";
@@ -55,6 +58,10 @@ public class LDAPAuthenticatorPlugin
 
     @Override
     public Properties getDefaultProperties() {
+        if(logger.isTraceEnabled()) {
+            logger.trace("getDefaultProperties called");
+        }
+
         return new Properties();
     }
 
@@ -67,17 +74,21 @@ public class LDAPAuthenticatorPlugin
     public void init(Properties props) {
         Properties localProperties = new Properties(props);
         // Load the configuration from ldap.properties and return it.
-        // This will cause Mirth Connect to load the properties into the server
-        // database and load them out again
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("ldap.properties")) {
             if(null == in) {
-                if(logger.isDebugEnabled())
-                    logger.debug("No local ldap.properties found; using database configuration");
+                if(logger.isDebugEnabled()) {
+                    logger.debug("No local ldap.properties found; using database configuration with " + props.size() + " items");
+                }
             } else {
-                if(logger.isTraceEnabled())
+                if(logger.isTraceEnabled()) {
                     logger.trace("Found local ldap.properties file; merging with database configuration");
+                }
 
                 localProperties.load(in);
+
+                if(logger.isTraceEnabled()) {
+                    logger.trace("Loaded " + localProperties.size() + " items from local ldap.properties; merged with " + props.size() + " items from database");
+                }
             }
         } catch (IOException ioe) {
             logger.error("Failed to read LDAP configuration from ldap.properties", ioe);
@@ -90,13 +101,13 @@ public class LDAPAuthenticatorPlugin
         int tries = DEFAULT_RETRIES;
         long retryInterval = DEFAULT_RETRY_INTERVAL;
         try {
-            tries = Integer.parseInt(props.getProperty(Constants.LDAP_RETRIES));
+            tries = Integer.parseInt(props.getProperty(Constants.LDAP_RETRIES, String.valueOf(DEFAULT_RETRIES)));
         } catch (NumberFormatException nfe) {
             logger.warn("Invalid value for " + Constants.LDAP_RETRIES + " (" + props.getProperty(Constants.LDAP_RETRIES) + "), falling-back to default value of " + tries);
             // Ignore, use default
         }
         try {
-            retryInterval = Long.parseLong(props.getProperty(Constants.LDAP_RETRY_INTERVAL));
+            retryInterval = Long.parseLong(props.getProperty(Constants.LDAP_RETRY_INTERVAL, String.valueOf(DEFAULT_RETRY_INTERVAL)));
         } catch (NumberFormatException nfe) {
             logger.warn("Invalid value for " + Constants.LDAP_RETRY_INTERVAL + " (" + props.getProperty(Constants.LDAP_RETRY_INTERVAL) + "), falling-back to default value of " + retryInterval);
             // Ignore, use default
@@ -120,6 +131,8 @@ public class LDAPAuthenticatorPlugin
         setRetries(tries);
         setRetryInterval(retryInterval);
         setFallbackToLocalAuthentication(isBooleanTrue(props.getProperty(Constants.LDAP_FALLBACK_TO_LOCAL)));
+        setUsernameMap(props.getProperty(Constants.LDAP_USERNAME_MAP, null));
+        setUsernameTemplate(props.getProperty(Constants.LDAP_USERNAME_TEMPLATE, null));
     }
 
     public static boolean isBooleanTrue(String s) {
@@ -207,6 +220,75 @@ public class LDAPAuthenticatorPlugin
         return _fallbackToLocalAuthentication;
     }
 
+    public String getUsernameTemplate() {
+        return _usernameTemplate;
+    }
+
+    public void setUsernameTemplate(String template) {
+        if(null == template || 0 == template.trim().length() || "{username}".equals(template)) {
+            _usernameTemplate = null;
+        } else {
+            _usernameTemplate = template;
+        }
+    }
+
+    public void setUsernameMap(String mapString) {
+        if(null == mapString || 0 == mapString.trim().length()) {
+            _usernameMap = null;
+        } else {
+            String[] maps = mapString.split("\\s*(?<!\\\\),\\s*"); // Split on comma using \ as an escape character
+
+            HashMap<String,String> map = new HashMap<String,String>(maps.length);
+
+            for(String mapped: maps) {
+                String[] split = mapped.split("\\s*(?<!\\\\)=\\s*"); // Split on equals using \ as an escape character
+
+                if(2 == split.length) {
+                    map.put(split[0], split[1]);
+                } else {
+                    logger.warn("Ignoring confusing mapping: " + mapped);
+                }
+            }
+
+            _usernameMap = Collections.unmodifiableMap(map);
+        }
+    }
+
+    public Map<String,String> getUsernameMap() {
+        return _usernameMap;
+    }
+
+    /**
+     * Map a user's username from the original user-supplied username
+     * to one that should be used when authenticating to LDAP.
+     *
+     * @param username The username to map.
+     *
+     * @return The mapped username, which may be unchanged.
+     */
+    public String mapUsername(String username) {
+        if(null == username)
+            return null;
+
+        String mappedUsername;
+
+        Map<String,String> map = getUsernameMap();
+        if(null != map) {
+            mappedUsername = map.get(username);
+
+            if(null == mappedUsername) {
+                mappedUsername = username;
+            }
+        } else {
+            mappedUsername = username;
+        }
+
+        String template = getUsernameTemplate();
+        if(null != template)
+            mappedUsername = template.replace("{username}", mappedUsername);
+
+        return mappedUsername;
+    }
 
     /**
      * Authenticates the user against the LDAP server.
@@ -225,6 +307,13 @@ public class LDAPAuthenticatorPlugin
         int tries = getRetries();
         long retryInterval = getRetryInterval();
 
+        String mappedUsername = mapUsername(username);
+        if(!username.equals(mappedUsername)) {
+            if(logger.isDebugEnabled()) {
+                logger.debug("Mapped incoming username from " + username + " to " + mappedUsername);
+            }
+        }
+
         while(tries > 0) {
             try {
                 // We can either connect with an anonymous and/or admin DN and go
@@ -232,10 +321,10 @@ public class LDAPAuthenticatorPlugin
                 //
                 // Let's try the direct approach for now.
 
-                performUserAuthenticationAndAuthorization(username, plainPassword);
+                performUserAuthenticationAndAuthorization(mappedUsername, plainPassword);
 
                 if(logger.isTraceEnabled()) {
-                    logger.trace("Successfully authenticated " + username
+                    logger.trace("Successfully authenticated " + mappedUsername
                                  + " using server " + getURL());
                 }
 
@@ -359,13 +448,5 @@ public class LDAPAuthenticatorPlugin
         } else {
             throw new AuthenticationException("User is not in any required group");
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        String password = JOptionPane.showInputDialog("Password");
-
-        LDAPAuthenticatorPlugin lap = new LDAPAuthenticatorPlugin();
-        lap.init(lap.getDefaultProperties());
-        lap.performUserAuthenticationAndAuthorization("schultz", password);
     }
 }
