@@ -100,10 +100,11 @@ public class MFAAuthenticationClientPlugin
             }
         } else {
             if(logger.isTraceEnabled()) {
-                logger.trace("User cancelled input dialog, returning primary login status " + primaryLoginStatus.getStatus());
+                logger.trace("User cancelled input dialog, returning FAIL status");
             }
 
-            return primaryLoginStatus;
+            // Remove the "message" from the server.
+            return new LoginStatus(LoginStatus.Status.FAIL, "");
         }
     }
 
