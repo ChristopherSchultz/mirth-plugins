@@ -21,9 +21,11 @@ PRs to me if you think there are improvements to be made.
 Mirth Corporation has funded the development of a wonderful product. I could
 not do my job without their stewardship of Mirth Connect (now Nextgen Connect).
 
-Members of the Mirth community (e.g. the Slack channel):
+Some Members of the Mirth community have been very helpful to my efforts. They
+are, in alphabetical order by surname:
 
   [Jon Bartels](https://github.com/jonbartels) @jonb in Mirth's slack channel
+  [Tony Germano](https://github.com/tonygermano) @agermano in Mirth's slack channel
 
 ## License
 
