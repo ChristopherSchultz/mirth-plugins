@@ -33,13 +33,13 @@ public class TOTPStrategy
         if(!"totp".equals(oc.type))
             throw new IllegalArgumentException("Unsupported OTP type: " + oc.type);
 
-        System.out.println("algo: " + config.algorithm + ", interval=" + config.period + ", length=" + config.digits);
+//        System.out.println("algo: " + config.algorithm + ", interval=" + config.period + ", length=" + config.digits);
 
         TimeBasedOneTimePassword totp = new TimeBasedOneTimePassword();
         totp.setHmacAlgorithm("Hmac" + oc.algorithm); // oc.algorithm will be e.g. "SHA1", we need e.g. "HmacSHA1"
         totp.setInterval(oc.period * 1000l);
         totp.setTokenLength(oc.digits);
-//        totp.setValidIntervals(this.validIntervals);
+        totp.setValidIntervals(this.validIntervals);
 
         try {
             return totp.isTokenValid(oc.secret, token);
