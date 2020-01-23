@@ -29,8 +29,6 @@ public class TOTPStrategy
 
     @Override
     public boolean isValidMFAToken(OTPConfig config, String token) {
-        if(!(config instanceof OTPConfig))
-            throw new IllegalArgumentException("Invalid config type");
         OTPConfig oc = (OTPConfig)config;
         if(!"totp".equals(oc.type))
             throw new IllegalArgumentException("Unsupported OTP type: " + oc.type);
