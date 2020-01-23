@@ -29,20 +29,19 @@ public class TOTPStrategy
 
     @Override
     public boolean isValidMFAToken(OTPConfig config, String token) {
-        OTPConfig oc = (OTPConfig)config;
-        if(!"totp".equals(oc.type))
-            throw new IllegalArgumentException("Unsupported OTP type: " + oc.type);
+        if(!"totp".equals(config.type))
+            throw new IllegalArgumentException("Unsupported OTP type: " + config.type);
 
 //        System.out.println("algo: " + config.algorithm + ", interval=" + config.period + ", length=" + config.digits);
 
         TimeBasedOneTimePassword totp = new TimeBasedOneTimePassword();
-        totp.setHmacAlgorithm("Hmac" + oc.algorithm); // oc.algorithm will be e.g. "SHA1", we need e.g. "HmacSHA1"
-        totp.setInterval(oc.period * 1000l);
-        totp.setTokenLength(oc.digits);
+        totp.setHmacAlgorithm("Hmac" + config.algorithm); // oc.algorithm will be e.g. "SHA1", we need e.g. "HmacSHA1"
+        totp.setInterval(config.period * 1000l);
+        totp.setTokenLength(config.digits);
         totp.setValidIntervals(this.validIntervals);
 
         try {
-            return totp.isTokenValid(oc.secret, token);
+            return totp.isTokenValid(config.secret, token);
         } catch (GeneralSecurityException gse) {
             logger.error("Error checking TOTP token", gse);
 
