@@ -135,6 +135,11 @@
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
+          <configuration>
+            <effort>Max</effort>
+            <threshold>Low</threshold>
+            <excludeFilterFile>findbugs-excludes.xml</excludeFilterFile>
+          </configuration>
         </plugin>
     </plugins>
   </reporting>
