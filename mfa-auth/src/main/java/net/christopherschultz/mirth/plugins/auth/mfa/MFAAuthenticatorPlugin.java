@@ -51,55 +51,37 @@ public class MFAAuthenticatorPlugin
 
     @Override
     public void init(Properties properties) {
-        if(logger.isTraceEnabled()) {
-            logger.trace("Received properties init with " + properties.size() + " properties");
-        }
-
         config(properties);
     }
 
     @Override
     public void update(Properties properties) {
-        if(logger.isTraceEnabled()) {
-            logger.trace("Received properties update with " + properties.size() + " properties");
-        }
-
         config(properties);
     }
 
     private void config(Properties properties) {
         String key = properties.getProperty(SIGNING_KEY, null);
 
-        // TODO: Re-generate signing key if it's missing?
-        if(null == key)
-            throw new IllegalStateException("Must have " + SIGNING_KEY + " available.");
+        if(null == key) {
+            if(logger.isDebugEnabled()) {
+                logger.debug("Generated new MFA message-signing key");
+            }
 
-        this.signingKey = Base64.getUrlDecoder().decode(key);
+            byte[] signingKey = generateNonce(256);
+
+            key = Base64.getUrlEncoder().encodeToString(signingKey);
+
+            properties.setProperty(SIGNING_KEY, key);
+
+            this.signingKey = signingKey;
+        } else {
+            this.signingKey = Base64.getUrlDecoder().decode(key);
+        }
     }
 
-    /**
-     * Returns a set of properties which will be set in the database when
-     * the plug-in is first installed.
-     */
     @Override
     public Properties getDefaultProperties() {
-        if(logger.isTraceEnabled()) {
-            logger.trace("getDefaultProperties");
-        }
-
-        Properties props = new Properties();
-
-        byte[] signingKey = generateNonce(256);
-
-        String signingKeyString = Base64.getUrlEncoder().encodeToString(signingKey);
-
-        if(logger.isTraceEnabled()) {
-            logger.trace("Generated new MFA message-signing key: " + signingKeyString);
-        }
-
-        props.setProperty(SIGNING_KEY, signingKeyString);
-
-        return props;
+        return new Properties();
     }
 
     @Override
@@ -196,8 +178,10 @@ public class MFAAuthenticatorPlugin
                     // Notify the client that an authentication-plugin must be invoked
                     return new ExtendedLoginStatus(LoginStatus.Status.FAIL, mfaResponseMessage, null, getClientPluginClassName());
                 }
-            } catch (Exception e) {
-                return new LoginStatus(LoginStatus.Status.FAIL, e.getMessage());
+            } catch (GeneralSecurityException gse) {
+                return new LoginStatus(LoginStatus.Status.FAIL, gse.getMessage());
+            } catch (ControllerException ce) {
+                return new LoginStatus(LoginStatus.Status.FAIL, ce.getMessage());
             }
         } else {
             // Return primary failure
