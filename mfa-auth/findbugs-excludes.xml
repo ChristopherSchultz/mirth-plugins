@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<!--
+  This is intended to be an "ignore" filter for FindBugs. It will suppress
+  certain tests that flag issues in that are actually
+  intentional or irrelevant and shouldn't be flagged.
+-->
+<FindBugsFilter>
+  <!-- The caller can handle a null return; why create more objects? -->
+  <Match>
+    <Class name="net.christopherschultz.mirth.plugins.auth.mfa.MFAAuthenticatorPlugin" />
+    <Method name="getExtensionPermissions" />
+    <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS" />
+  </Match>
+
+  <!-- Checking for null is usually a good practice :) -->
+  <Match>
+    <Class name="net.christopherschultz.mirth.plugins.auth.mfa.OTPConfig" />
+    <Method name="parseOTPConfig" />
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
+  </Match>
+</FindBugsFilter>
+
