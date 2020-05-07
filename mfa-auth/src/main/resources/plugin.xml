@@ -2,7 +2,7 @@
   <name>MFA Authenticator</name>
   <author>Christopher Schultz</author>
   <pluginVersion>0.1</pluginVersion>
-  <mirthVersion>3.8.0</mirthVersion>
+  <mirthVersion>3.9.0, 3.8.1, 3.8.0</mirthVersion>
   <url>https://github.com/ChristopherSchultz/mirth-plugins/tree/master/mfa-auth</url>
   <description>Provides multi-factor authentication.</description>
   <serverClasses>
