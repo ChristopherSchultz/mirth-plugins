@@ -14,7 +14,7 @@ files. It is not canonical. It may be incomplete. It may be wildly incorrect.
       <xs:element name="name" type="xs:string" /><!-- The name of the plug-in -->
       <xs:element name="author" type="xs:string" /><!-- The author of the plug-in -->
       <xs:element name="pluginVersion" type="xs:string" /><!-- The version of the plug-in -->
-      <xs:element name="mirthVersion" type="xs:string" /><!-- The Mirth version for which the plug-in is valid -->
+      <xs:element name="mirthVersion" type="versionType" /><!-- The Mirth version(s) for which the plug-in is valid -->
       <xs:element name="url" type="xs:anyURI" /><!-- The URL for the plug-in -->
       <xs:element name="description" type="xs:string" /><!-- A description of the plug-in -->
       <xs:element name="clientClasses" type="classesType" minOccurs="0" /><!-- List of (main?) classes that must be loaded into the MC Admin client -->
@@ -24,6 +24,20 @@ files. It is not canonical. It may be incomplete. It may be wildly incorrect.
     </xs:sequence>
     <xs:attribute name="path" use="required" /><!-- The path on the client and server where the plug-in should live -->
   </xs:complexType>  
+
+  <xs:simpleType name="versionType">
+    <xs:annotation>
+      <xs:documentation>
+        A comma-separated list of Mirth Connect versions supported by this plug-in.
+        e.g. "3.4.0, 3.5.0, 3.6.0". Mirth versions are typically 3 numbers separated
+        by periods, but this validation pattern allows any number of numbers as long
+        as they are separated by periods.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9](\.[0-9])*(,\s*[0-9](\.[0-9])*)*"/>
+    </xs:restriction>
+  </xs:simpleType>
 
   <xs:complexType name="classesType">
     <xs:sequence>
