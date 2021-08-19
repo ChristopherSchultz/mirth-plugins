@@ -106,6 +106,17 @@
  * ```
  * 51.193783738070984
  * ```
+ *
+ *
+ * If you specify the special heap 'name' "GC:run", this channel will
+ * make a call to java.lang.Runtime.gc() and return a successful response:
+ *
+ *```
+ * {"status":"ok","operation":"GC:run"}
+ *```
+ *
+ * There is no guarantee that the JVM will actually perform garbage collection.
+ * Please see the javadoc for java.lang.Runtime.gc for more information.
  */
 var msg = XML(connectorMessage.getRawData());
 // Why exactly do we have to call URLDecoder.decode, here?
@@ -127,7 +138,15 @@ if(segments.length > 2) {
 // JSON object to return
 var data;
 
-if('' != heapName) {
+if('GC:run' == heapName) {
+  var runtime = java.lang.Runtime.getRuntime();
+  runtime.gc();
+
+  data = {
+    "status" : "ok",
+    "operation" : "GC:run"
+  };
+} else if('' != heapName) {
   // Specific heap info
   var memBeans = java.lang.management.ManagementFactory.getMemoryPoolMXBeans();
   if(memBeans && !memBeans.isEmpty()) {
