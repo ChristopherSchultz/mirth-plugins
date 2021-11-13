@@ -1,6 +1,7 @@
 #!/bin/sh
 
-PATH=$PATH:~/packages/apache-maven-3.6.2/bin
+MVN_HOME=${MVN_HOME:-~/packages/apache-maven-3.8.3}
+PATH=${PATH}:${MVN_HOME}/bin
 VERSION=0.1
 PACKAGE_NAME=cschultz-mfa-auth
 BUILD_CLIENT=yes
@@ -13,7 +14,7 @@ PACKAGE_ZIP="${PACKAGE_NAME}-${VERSION}.zip"
 
 rm -f "target/${PACKAGE_ZIP}"
 
-mvn package
+mvn package || ( echo Build failed && exit 1 )
 
 status=$?
 
