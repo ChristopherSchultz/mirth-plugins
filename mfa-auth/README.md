@@ -38,7 +38,7 @@ artifacts. You will need to place these files into the `libs/` directory:
     mirth-server.jar
     mirth-client-core.jar
     mirth-client.jar
-    java-totp-1.0.jar
+    java-totp-1.1.jar
 
 You can find these libraries in Mirth Connect's server download, except
 for `java-totp-1.1.jar` which you will need to fetch from my `java-totp`
