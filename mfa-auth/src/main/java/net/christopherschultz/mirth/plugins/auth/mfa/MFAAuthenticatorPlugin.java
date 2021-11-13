@@ -415,4 +415,13 @@ public class MFAAuthenticatorPlugin
 
         return "net.christopherschultz.mirth.plugins.auth.mfa.MFAAuthenticationClientPlugin";
     }
+
+        /**
+     * Returns a map of strings to example objects for use in populating swagger's examples.
+     *
+     * @return
+     */
+    public Map<String, Object> getObjectsForSwaggerExamples() {
+        return null;
+    }
 }
