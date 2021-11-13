@@ -21,7 +21,7 @@ if [ "0" != "$status" ] ; then
   exit
 fi
 
-jarsigner -keystore keystore.p12 -storetype PKCS12 -storepass changeit "target/${PACKAGE_JAR}" mirth-client-plugins
+jarsigner -tsa 'http://timestamp.digicert.com' -keystore keystore.p12 -storetype PKCS12 -storepass changeit "target/${PACKAGE_JAR}" mirth-client-plugins
 
 # Use a separate directory for ZIP assembly
 rm -rf "${PACKAGE_NAME}"
