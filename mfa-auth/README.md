@@ -29,12 +29,6 @@ it will be used as a part of the token prompt on the client.
 
 For now, only the "totp" type is supported.
 
-## Installation
-
-Simply upload the ZIP file containing the plug-in via the Mirth Connect
-administrator, or unzip the ZIP file into the `extensions/` directory on
-your Mirth server.
-
 ## Building
 
 The LDAP authenticator can be built with Apache Maven, but it will require that
@@ -47,6 +41,22 @@ artifacts. You will need to place these files into the `libs/` directory:
     java-totp-1.0.jar
 
 You can find these libraries in Mirth Connect's server download, except
-for `java-totp-1.0.jar` which you will need to fetch from my `java-totp`
+for `java-totp-1.1.jar` which you will need to fetch from my `java-totp`
 repository here:
 [https://github.com/ChristopherSchultz/java-totp](https://github.com/ChristopherSchultz/java-totp)
+
+Once built, you will need to package the code artifacts, etc. into a ZIP file for installation into Mirth.
+
+To do this, you will need a code-signing certificate which you can generate yourself, or you can get one from a Certificate Authority of your choice.
+
+Put your certificate and private key into a file called `keystore.p12` in the mfs-auth/ directory and run this script:
+
+    $ bundle.sh
+
+Pull-requests including a script for bundling on Microsoft Windows or through Maven would be greatly appreciated.
+
+## Installation
+
+Simply upload the ZIP file containing the plug-in via the Mirth Connect
+administrator, or unzip the ZIP file into the `extensions/` directory on
+your Mirth server.
