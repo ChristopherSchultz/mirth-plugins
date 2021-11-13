@@ -449,4 +449,8 @@ public class LDAPAuthenticatorPlugin
             throw new AuthenticationException("User is not in any required group");
         }
     }
+
+    public Map<String, Object> getObjectsForSwaggerExamples() {
+        return null;
+    }
 }
