@@ -45,15 +45,24 @@ for `java-totp-1.1.jar` which you will need to fetch from my `java-totp`
 repository here:
 [https://github.com/ChristopherSchultz/java-totp](https://github.com/ChristopherSchultz/java-totp)
 
-Once built, you will need to package the code artifacts, etc. into a ZIP file for installation into Mirth.
+Once built, you will need to package the code artifacts, etc. into a ZIP file
+for installation into Mirth.
 
-To do this, you will need a code-signing certificate which you can generate yourself, or you can get one from a Certificate Authority of your choice.
+To do this, you will need a code-signing certificate which you can generate
+yourself, or you can get one from a Certificate Authority of your choice.
 
-Put your certificate and private key into a file called `keystore.p12` in the mfs-auth/ directory and run this script:
+Put your certificate and private key into a file called `keystore.p12` in the
+mfa-auth/ directory and run this script:
 
     $ bundle.sh
 
-Pull-requests including a script for bundling on Microsoft Windows or through Maven would be greatly appreciated.
+The bundle.sh script actually takes care of compiling the code as well, so if
+you intend to build the whole bundle, you can just run bundle.sh and skip the
+Maven step above. You still need Maven, and you still need to get your
+dependencies ready.
+
+Pull-requests including a script for bundling on Microsoft Windows or through
+Maven would be greatly appreciated.
 
 ## Installation
 
