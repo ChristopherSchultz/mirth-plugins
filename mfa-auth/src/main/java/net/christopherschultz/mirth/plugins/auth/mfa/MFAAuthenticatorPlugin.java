@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mirth.connect.client.core.ControllerException;
 import com.mirth.connect.model.ExtendedLoginStatus;
@@ -34,7 +35,7 @@ public class MFAAuthenticatorPlugin
 {
     private static final String SIGNING_KEY = "mfa.signing-key";
 
-    private Logger logger = Logger.getLogger(this.getClass());
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     private final SecureRandom random = new SecureRandom();
     private byte[] signingKey;
     private long mfaSignatureTimeout = 30 * 1000; // 30 seconds

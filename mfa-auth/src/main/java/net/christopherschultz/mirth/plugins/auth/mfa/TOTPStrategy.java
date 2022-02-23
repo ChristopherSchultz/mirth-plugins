@@ -2,7 +2,8 @@ package net.christopherschultz.mirth.plugins.auth.mfa;
 
 import java.security.GeneralSecurityException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.christopherschultz.totp.TimeBasedOneTimePassword;
 
@@ -12,7 +13,7 @@ import net.christopherschultz.totp.TimeBasedOneTimePassword;
 public class TOTPStrategy
     implements MFAStrategy
 {
-    private Logger logger = Logger.getLogger(this.getClass());
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final int DEFAULT_VALID_INTERVALS = 2;
 

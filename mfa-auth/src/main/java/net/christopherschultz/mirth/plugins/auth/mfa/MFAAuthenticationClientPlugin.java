@@ -8,6 +8,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.mirth.connect.client.core.Client;
 import com.mirth.connect.client.core.ClientException;
 import com.mirth.connect.client.core.api.servlets.UserServletInterface;
@@ -15,8 +18,6 @@ import com.mirth.connect.plugins.ClientPlugin;
 import com.mirth.connect.plugins.MultiFactorAuthenticationClientPlugin;
 import com.mirth.connect.model.LoginStatus;
 import com.mirth.connect.model.ExtendedLoginStatus;
-
-import org.apache.log4j.Logger;
 
 /**
  * Implements a ClientPlugin for multi-factor authentication.
@@ -27,7 +28,7 @@ public class MFAAuthenticationClientPlugin
     extends ClientPlugin
     implements MultiFactorAuthenticationClientPlugin
 {
-    private Logger logger = Logger.getLogger(this.getClass());
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public MFAAuthenticationClientPlugin() {
         this("default");
