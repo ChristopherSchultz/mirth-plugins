@@ -19,7 +19,7 @@ PRs to me if you think there are improvements to be made.
 ## Acknowledgements
 
 Mirth Corporation has funded the development of a wonderful product. I could
-not do my job without their stewardship of Mirth Connect (now Nextgen Connect).
+not do my job without their stewardship of Mirth Connect (~~now Nextgen~~ still Mirth Connect).
 
 Some Members of the Mirth community have been very helpful to my efforts. They
 are, in alphabetical order by surname:
