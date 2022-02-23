@@ -15,7 +15,8 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mirth.connect.client.core.ControllerException;
 import com.mirth.connect.plugins.AuthorizationPlugin;
@@ -39,7 +40,7 @@ public class LDAPAuthenticatorPlugin
     private static final long DEFAULT_RETRY_INTERVAL = 1000;
     private static final long MAX_RETRY_INTERVAL = 10000;
 
-    private final Logger logger = Logger.getLogger(LDAPAuthenticatorPlugin.class);
+    private final Logger logger = LoggerFactory.getLogger(LDAPAuthenticatorPlugin.class);
 
     private String _contextFactoryClassName = DEFAULT_CONTEXT_FACTORY_CLASS_NAME;
     private String _url;
