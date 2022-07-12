@@ -163,11 +163,11 @@ if('GC:run' == heapName) {
                };
       }
     }
-  }
-  if(data) {
-    // Return only the requested sample
-    if(sampleName && data.hasOwnProperty(sampleName)) {
-      data = data[sampleName];
+    if(data) {
+      // Return only the requested sample
+      if(sampleName && data.hasOwnProperty(sampleName)) {
+        data = data[sampleName];
+      }
     }
   } else {
     data = { "error" : "Unknown heap '" + heapName + "'" };
