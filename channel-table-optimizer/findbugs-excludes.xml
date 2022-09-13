@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<!--
+  This is intended to be an "ignore" filter for FindBugs. It will suppress
+  certain tests that flag issues in that are actually
+  intentional or irrelevant and shouldn't be flagged.
+-->
+<FindBugsFilter>
+  <Match>
+    <Class name="net.christopherschultz.mirth.tools.MirthChannelOptimizer" />
+    <Method name="optimizeChannelTables" />
+    <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+  </Match>
+  <Match>
+    <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
+  </Match>
+</FindBugsFilter>
+
