@@ -2,6 +2,7 @@ package net.christopherschultz.mirth.plugins.auth.ldap;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -401,8 +402,19 @@ public class LDAPAuthenticatorPlugin
         if(null == password || 0 == password.length())
             throw new IllegalArgumentException("Empty password is prohibited");
 
+        if(null == getURL()
+           || null == getGroupFilterTemplate()) {
+            throw new IllegalStateException("No LDAP URL configured. Missing configuration?");
+        }
+
         String userTemplate = getUserDNTemplate();
-        String dn = userTemplate.replace("{username}", username);
+
+        String dn;
+        if(null != userTemplate) {
+            dn = userTemplate.replace("{username}", escapeFilterValue(username));
+        } else {
+            dn = escapeFilterValue(username);
+        }
 
         Properties props = new Properties();
 
@@ -428,7 +440,7 @@ public class LDAPAuthenticatorPlugin
         sc.setTimeLimit(10000);
 
         String filter = getGroupFilterTemplate();
-        filter = filter.replace("{username}", username);
+        filter = filter.replace("{username}", escapeFilterValue(username));
 
         if(logger.isTraceEnabled()) {
             logger.trace("Searching for groups using using filter=" + filter);
@@ -453,5 +465,50 @@ public class LDAPAuthenticatorPlugin
 
     public Map<String, Object> getObjectsForSwaggerExamples() {
         return null;
+    }
+
+    /**
+     * Filter components need to escape special chars.
+     * Note that each piece of the filter needs to be escaped,
+     * not the whole filter expression, for example:
+     *
+     * "(&(cn="+ esc("Admins") +")(member="+ esc("CN=Doe\\, Jöhn,OU=ImPeople,DC=ds,DC=augur,DC=com") +"))"
+     *
+     * Credit: Chris Janicki [https://stackoverflow.com/a/46008789/276232]
+     *
+     * @see Oracle Directory Server Enterprise Edition 11g Reference doc
+     * @see http://docs.oracle.com/cd/E29127_01/doc.111170/e28969/ds-ldif-search-filters.htm#gdxoy
+     * @param s A String field within the search expression
+     * @return The escaped string, safe for use in the search expression.
+     */
+    public static String escapeFilterValue(String s)
+    {
+        if(s == null) return "";
+        StringBuilder sb = new StringBuilder(s.length());
+        for (byte c : s.getBytes(StandardCharsets.UTF_8))
+        {
+            if (c=='\\') { sb.append("\\5c"); }
+            else if (c=='*') { sb.append("\\2a"); }
+            else if (c=='(') { sb.append("\\28"); }
+            else if (c==')') { sb.append("\\29"); }
+            else if (c==0) { sb.append("\\00"); }
+            else if ((c&0xff)>127) { sb.append("\\").append(to2CharHexString(c)); } // UTF-8's non-7-bit characters, e.g. é, á, etc...
+            else { sb.append((char)c); }
+        }
+
+        return sb.toString();
+    }
+
+    private static final char[] HEX = "0123456789abcdef".toCharArray();
+    /**
+     * @return The least significant 16 bits as a two-character hex string,
+     * padded by a leading '0' if necessary.
+     */
+    public static String to2CharHexString(int i)
+    {
+        return new String(new char[] {
+                HEX[(i >> 4) & 0x0f],
+                HEX[(i     ) & 0x0f],
+        });
     }
 }
