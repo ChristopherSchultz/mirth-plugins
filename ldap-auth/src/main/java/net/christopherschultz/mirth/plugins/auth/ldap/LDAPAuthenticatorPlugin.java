@@ -3,10 +3,13 @@ package net.christopherschultz.mirth.plugins.auth.ldap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
@@ -52,7 +55,9 @@ public class LDAPAuthenticatorPlugin
     private long _retryInterval;
     private boolean _fallbackToLocalAuthentication = false;
     private Map<String,String> _usernameMap;
+    private Map<String,String> _usernameReverseMap;
     private String _usernameTemplate;
+    private Set<String> _nonLDAPUsernames;
 
     public String getPluginPointName() {
         return "LDAP-Authenticator";
@@ -135,6 +140,7 @@ public class LDAPAuthenticatorPlugin
         setFallbackToLocalAuthentication(isBooleanTrue(props.getProperty(Constants.LDAP_FALLBACK_TO_LOCAL)));
         setUsernameMap(props.getProperty(Constants.LDAP_USERNAME_MAP, null));
         setUsernameTemplate(props.getProperty(Constants.LDAP_USERNAME_TEMPLATE, null));
+        setNonLDAPUsernames(props.getProperty(Constants.LDAP_NON_LDAP_USERNAMES, null));
     }
 
     public static boolean isBooleanTrue(String s) {
@@ -234,9 +240,45 @@ public class LDAPAuthenticatorPlugin
         }
     }
 
+    public void setNonLDAPUsernames(String nonLDAPUsernames) {
+        if(null == nonLDAPUsernames) {
+            _nonLDAPUsernames = null;
+        } else {
+            setNonLDAPUsernames(nonLDAPUsernames.split("\\s*,\\s*"));
+        }
+    }
+
+    public void setNonLDAPUsernames(String[] nonLDAPUsernames) {
+        if(null == nonLDAPUsernames || 0 == nonLDAPUsernames.length) {
+            _nonLDAPUsernames = null;
+        } else if(1 == nonLDAPUsernames.length) {
+            _nonLDAPUsernames = Collections.singleton(nonLDAPUsernames[0]);
+        } else {
+            HashSet<String> usernames = new HashSet<String>(nonLDAPUsernames.length);
+            for(String username : nonLDAPUsernames) {
+                usernames.add(username);
+            }
+
+            _nonLDAPUsernames = Collections.unmodifiableSet(usernames);
+        }
+    }
+
+    public void setNonLDAPUsernames(Collection<String> nonLDAPUsernames) {
+        if(null == nonLDAPUsernames || 0 == nonLDAPUsernames.size()) {
+            _nonLDAPUsernames = null;
+        } else {
+            _nonLDAPUsernames = Collections.unmodifiableSet(new HashSet<String>(nonLDAPUsernames));
+        }
+    }
+
+    public Set<String> getNonLDAPUsernames() {
+        return _nonLDAPUsernames;
+    }
+
     public void setUsernameMap(String mapString) {
         if(null == mapString || 0 == mapString.trim().length()) {
             _usernameMap = null;
+            _usernameReverseMap = null;
         } else {
             String[] maps = mapString.split("\\s*(?<!\\\\),\\s*"); // Split on comma using \ as an escape character
 
@@ -253,11 +295,25 @@ public class LDAPAuthenticatorPlugin
             }
 
             _usernameMap = Collections.unmodifiableMap(map);
+
+            map = new HashMap<String,String>();
+            for(Map.Entry<String,String> entry : _usernameMap.entrySet()) {
+                String oldEntry = map.put(entry.getValue(), entry.getKey());
+                if(null != oldEntry) {
+                    logger.warn("Username " + entry.getValue() + " is mapped to both " + oldEntry + " and " + entry.getKey());
+                }
+            }
+
+            _usernameReverseMap = Collections.unmodifiableMap(map);
         }
     }
 
     public Map<String,String> getUsernameMap() {
         return _usernameMap;
+    }
+
+    public Map<String,String> getUsernameReverseMap() {
+        return _usernameReverseMap;
     }
 
     /**
@@ -293,6 +349,48 @@ public class LDAPAuthenticatorPlugin
     }
 
     /**
+     * Unmap a user's username from the one they use for LDAP authentication
+     * to their preferred in-Mirth username, if such a thing exists.
+     *
+     * This allows the user to use either their preferred Mirth username OR
+     * their LDAP username to login, and the Mirth username will always
+     * end up being the "unmapped" one. This can help prevent duplicate/alias
+     * users being created in the Mirth database.
+     *
+     * @param username The username to unmap.
+     *
+     * @return The unmapped username, which may be unchanged.
+     */
+    public String unmapUsername(String username) {
+        if(null == username) {
+            return null;
+        }
+
+        Map<String,String> usernameReverseMap = getUsernameReverseMap();
+
+        String unmappedUsername;
+        if(null == usernameReverseMap) {
+            unmappedUsername = username;
+        } else {
+            unmappedUsername = usernameReverseMap.get(username);
+
+            if(null == unmappedUsername) {
+                unmappedUsername = username;
+            }
+        }
+
+        return unmappedUsername;
+    }
+
+    public boolean isNonLDAPUsername(String username) {
+        Set<String> nonLDAPUsernames = getNonLDAPUsernames();
+
+        return null != nonLDAPUsernames
+                && nonLDAPUsernames.contains(username)
+                ;
+    }
+
+    /**
      * Authenticates the user against the LDAP server.
      *
      * If {@link #getFallbackToLocalAuthentication()} is <code>true</code>,
@@ -306,6 +404,15 @@ public class LDAPAuthenticatorPlugin
      *         {@link #getFallbackToLocalAuthentication()}.
      */
     public LoginStatus authorizeUser(String username, String plainPassword) throws ControllerException {
+
+        if(isNonLDAPUsername(username)) {
+            // Always use the "basic"
+            if(logger.isDebugEnabled())
+                logger.debug("User " + username + " is a non-LDAP user; falling-back to local authentication");
+
+            return null;
+        }
+
         int tries = getRetries();
         long retryInterval = getRetryInterval();
 
@@ -323,43 +430,44 @@ public class LDAPAuthenticatorPlugin
                 //
                 // Let's try the direct approach for now.
 
-                performUserAuthenticationAndAuthorization(mappedUsername, plainPassword);
+                User ldapUser = performUserAuthenticationAndAuthorization(mappedUsername, plainPassword);
 
                 if(logger.isTraceEnabled()) {
-                    logger.trace("Successfully authenticated " + mappedUsername
-                                 + " using server " + getURL());
+                    logger.trace("Successfully authenticated user '" + mappedUsername
+                                 + "' using server " + getURL());
                 }
 
                 // Check to see if we need to create a new local user
                 UserController uc = ControllerFactory.getFactory().createUserController();
 
+                // Un-map the username, just in case this is necessary.
+                username = unmapUsername(username);
+
+                if(logger.isTraceEnabled()) {
+                    logger.trace("Will use the username '" + username + "' for Mirth");
+                }
+
                 User user = uc.getUser(null, username);
 
                 if(null == user) {
                     if(logger.isDebugEnabled()) {
-                        logger.debug("Must create new local user for " + username);
+                        logger.debug("Must create new local user for '" + username + "'");
                     }
 
-                    user = new User();
-
-                    user.setUsername(username);
-
-                    uc.updateUser(user);
+                    uc.updateUser(ldapUser);
                 }
 
                 return new LoginStatus(LoginStatus.Status.SUCCESS, null);
             } catch (NamingException ne) {
                 if(getFallbackToLocalAuthentication()) {
-                    if(logger.isDebugEnabled())
-                        logger.debug("Failed to authenticate " + username
-                                     + " using server " + getURL()
-                                     + "; falling-back to local authentication", ne);
+                    logger.error("Failed to authenticate user '" + mappedUsername
+                            + "' using server " + getURL()
+                            + "; falling-back to local authentication", ne);
 
                     return null;
                 } else {
-                    if(logger.isTraceEnabled())
-                        logger.trace("Failed to authenticate " + username
-                                     + " using server " + getURL(), ne);
+                    logger.error("Failed to authenticate user '" + mappedUsername
+                            + "' using server " + getURL(), ne);
 
                     return new LoginStatus(LoginStatus.Status.FAIL, ne.getMessage());
                 }
@@ -373,8 +481,8 @@ public class LDAPAuthenticatorPlugin
         // Authentication did not succeed after X tries
         if(getFallbackToLocalAuthentication()) {
             if(logger.isDebugEnabled())
-                logger.debug("Failed to authenticate " + username
-                             + " using server " + getURL()
+                logger.debug("Failed to authenticate user '" + username
+                             + "' using server " + getURL()
                              + "; falling-back to local authentication");
 
             return null;
@@ -392,11 +500,11 @@ public class LDAPAuthenticatorPlugin
      * @param username The user's username
      * @param password The user's password
      *
-     * @return The username to use in the Mirth database
+     * @return The User to use in the Mirth database.
      *
      * @throws NamingException If there is an error
      */
-    private String performUserAuthenticationAndAuthorization(String username, String password)
+    private User performUserAuthenticationAndAuthorization(String username, String password)
         throws NamingException
     {
         if(null == password || 0 == password.length())
@@ -435,7 +543,7 @@ public class LDAPAuthenticatorPlugin
         // throws javax.naming.CommunicationException comm problem
 
         SearchControls sc = new SearchControls();
-        sc.setReturningAttributes(new String[] { "dn", "cn" });
+        sc.setReturningAttributes(new String[] { "dn", "cn", "email", "mail", "emailAddress", "givenName", "sn" });
         sc.setSearchScope(SearchControls.SUBTREE_SCOPE);
         sc.setTimeLimit(10000);
 
@@ -457,7 +565,15 @@ public class LDAPAuthenticatorPlugin
                 }
             }
 
-            return username;
+            User user = new User();
+            /*
+            user.setEmail(mappedUsername);
+            user.setFirstName(mappedUsername);
+            user.setLastName(mappedUsername);
+*/
+            user.setUsername(username);
+
+            return user;
         } else {
             throw new AuthenticationException("User is not in any required group");
         }
